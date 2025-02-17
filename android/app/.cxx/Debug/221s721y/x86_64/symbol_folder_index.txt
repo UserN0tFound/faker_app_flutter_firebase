@@ -1,0 +1,1 @@
+/Users/rch/Desktop/Formation_flutter/Week-3/faker_app_flutter_firebase/build/app/intermediates/cxx/Debug/221s721y/obj/x86_64
