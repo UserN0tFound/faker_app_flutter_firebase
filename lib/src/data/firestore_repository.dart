@@ -31,10 +31,10 @@ class FirestoreRepository {
       _firestore.doc('jobs/$jobId').delete();
 
   // récuperation de la collection 'jobs' et conversion en Job
-  Query<Job> jobsQuery() {
+  Query<Job> jobsQuery(String uid) {
     return _firestore.collection('jobs').withConverter(
         fromFirestore: (snapshot, options) => Job.fromMap(snapshot.data()!),
-        toFirestore: (value, options) => value.toMap());
+        toFirestore: (value, options) => value.toMap()).where('uid', isEqualTo: uid);
   }
 }
 
