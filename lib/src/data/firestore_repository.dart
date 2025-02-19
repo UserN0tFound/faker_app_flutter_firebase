@@ -10,31 +10,28 @@ class FirestoreRepository {
 
   // ajout d'un job dans la collection 'jobs'
   Future<void> addJob(String uid, String title, String company) =>
-      _firestore.collection('jobs').add({
-        // on fait ça pour l'instant mais c'est une erreur
-        'uid': uid,
+      _firestore.collection('users/$uid/jobs').add({
         'title': title,
-        'company': company
+        'company': company,
+        // FieldValue.serverTimestamp() permet de stocker la date de création
+        'createdAt': FieldValue.serverTimestamp()
       });
 
   // update d'un job dans la collection 'jobs'
   Future<void> updateJob(
           String uid, String jobId, String title, String company) =>
-      _firestore.doc('jobs/$jobId').update({
-        // on fait ça pour l'instant mais c'est une erreur
-        'uid': uid,
-        'title': title,
-        'company': company
-      });
+      _firestore
+          .doc('users/$uid/jobs/$jobId')
+          .update({'title': title, 'company': company});
 
   Future<void> deleteJob(String uid, String jobId) =>
-      _firestore.doc('jobs/$jobId').delete();
+      _firestore.doc('users/$uid/jobs/$jobId').delete();
 
   // récuperation de la collection 'jobs' et conversion en Job
   Query<Job> jobsQuery(String uid) {
-    return _firestore.collection('jobs').withConverter(
+    return _firestore.collection('users/$uid/jobs').withConverter(
         fromFirestore: (snapshot, options) => Job.fromMap(snapshot.data()!),
-        toFirestore: (value, options) => value.toMap()).where('uid', isEqualTo: uid);
+        toFirestore: (value, options) => value.toMap()).orderBy('createdAt', descending: true);
   }
 }
 
