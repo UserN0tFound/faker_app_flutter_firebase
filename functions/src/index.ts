@@ -1,20 +1,30 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
-import { onRequest } from "firebase-functions/v2/https";
+import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
+import * as functions from "firebase-functions/v2";
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+admin.initializeApp();
 
-// très important de bien de mettre export pour utiliser en tant que cloud function
-export const helloWorld = onRequest((request, response) => {
-  logger.info("Hello logs!", { structuredData: true });
-  response.send("Hello from Firebase!");
-});
+export const makeJobTitleUppercase = functions.firestore.onDocumentWritten(
+  "/users/{uid}/jobs/{jobId}",
+  (e) => {
+    const change = e.data;
+    if (change == undefined) {
+      return;
+    }
+    const data = change.after.data();
+    if (data === undefined) {
+      // If the document has been deleted, do nothing
+      return;
+    }
+    const uppercase = data.title.toUpperCase();
+    // If the title is already uppercase, do nothing (prevents an infinite loop)
+    if (uppercase == data.title) {
+      return;
+    }
+    // else, write back to the same document
+    logger.log(
+      `Uppercasing ${change.after.ref.path}: ${data.title} > ${uppercase}`
+    );
+    return change.after.ref.set({ title: uppercase }, { merge: true });
+  }
+);
